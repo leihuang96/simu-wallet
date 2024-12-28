@@ -1,4 +1,4 @@
-package com.simuwallet.user_service.config;
+package com.simuwallet.wallet_service.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -19,8 +19,8 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable) // 禁用 CSRF
                 .authorizeHttpRequests(auth -> auth
-                        // 允许匿名访问的接口
-                        .requestMatchers("/users/register", "/users/login","/users/**","/actuator/health").permitAll()
+                                // 允许匿名访问的接口
+                                .requestMatchers("/wallets/**").permitAll()
                         // 需要认证的接口
                         //.requestMatchers("/users/**").authenticated()
                 )

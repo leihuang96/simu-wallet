@@ -1,7 +1,6 @@
 package com.simuwallet.user_service.infrastructure.repository;
 
 import com.simuwallet.user_service.infrastructure.repository.entity.UserEntity;
-import io.micrometer.observation.ObservationFilter;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

@@ -1,0 +1,116 @@
+services:
+  user-service:
+    container_name: user-service
+    build:
+      context: .
+      dockerfile: user-service/Dockerfile
+    networks:
+      - default
+    ports:
+      - "8081:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/simuwallet_prod
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: asdf96
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      - db
+      - redis
+      - kafka
+
+  wallet-service:
+    container_name: wallet-service
+    build:
+      context: .
+      dockerfile: wallet-service/Dockerfile
+    networks:
+      - default
+    ports:
+      - "8082:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/simuwallet_prod
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: asdf96
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      - db
+      - redis
+      - kafka
+
+  exchange-rate-service:
+    container_name: exchange-rate-service
+    build:
+      context: .
+      dockerfile: exchange-rate-service/Dockerfile
+    networks:
+      - default
+    ports:
+      - "8083:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/simuwallet_prod
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: asdf96
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      EXCHANGE_RATE_API_URL: https://api.exchangerate-api.com/v6/latest
+      EXCHANGE_RATE_API_KEY: cda830e0f72a35c31f16af5e
+    depends_on:
+      - db
+      - redis
+      - kafka
+
+  db:
+    image: postgres:15.3
+    container_name: db
+    networks:
+      - default
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: asdf96
+      POSTGRES_DB: simuwallet_prod
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d simuwallet_prod -h 127.0.0.1" ]
+      interval: 10s
+      retries: 5
+
+  redis:
+    image: redis:7.0
+    container_name: redis
+    ports:
+      - "6379:6379"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+networks:
+  default:
+    name: simu-wallet-network
+volumes:
+  db-data:

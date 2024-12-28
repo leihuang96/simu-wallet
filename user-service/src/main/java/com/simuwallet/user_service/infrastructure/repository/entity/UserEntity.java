@@ -5,13 +5,14 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "\"user\"") // 使用双引号转义表名
+
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
+@Entity
+@Table(name = "\"user\"") // 使用双引号转义表名
 public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // 主键自增

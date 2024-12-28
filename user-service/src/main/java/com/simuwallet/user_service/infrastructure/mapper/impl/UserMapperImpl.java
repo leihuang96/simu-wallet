@@ -32,14 +32,15 @@ public class UserMapperImpl implements UserMapper {
         if (entity == null) {
             return null;
         }
-        return User.fromEntity(
-                entity.getUserId(),
-                entity.getUsername(),
-                entity.getEmail(),
-                Password.fromEncrypted(entity.getPassword()), // 密码封装为值对象
-                entity.getCreatedAt(), // 映射创建时间
-                entity.getModifiedAt()
-        );
-    }
 
+        // 使用 Builder 构建领域模型
+        return User.builder()
+                .userId(entity.getUserId())
+                .username(entity.getUsername())
+                .email(entity.getEmail())
+                .password(Password.fromEncrypted(entity.getPassword()))
+                .createdAt(entity.getCreatedAt())
+                .modifiedAt(entity.getModifiedAt())
+                .build();
+    }
 }

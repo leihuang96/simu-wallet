@@ -2,17 +2,17 @@ package com.simuwallet.user_service.domain.model;
 
 import com.simuwallet.user_service.domain.model.valueobject.Password;
 import com.simuwallet.user_service.domain.service.PasswordEncryptor;
-import com.simuwallet.user_service.domain.service.UserDomainService;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
 import java.util.UUID;
 
 
 import java.time.LocalDateTime;
 
 @Getter
+@Setter
 @NoArgsConstructor
+@Builder
 public class User {
     private String userId;
     private String username;
