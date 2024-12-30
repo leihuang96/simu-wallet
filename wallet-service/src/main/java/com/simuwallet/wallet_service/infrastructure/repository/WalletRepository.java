@@ -1,5 +1,6 @@
 package com.simuwallet.wallet_service.infrastructure.repository;
 
+import aj.org.objectweb.asm.commons.Remapper;
 import com.simuwallet.wallet_service.infrastructure.repository.entity.WalletEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -22,4 +23,6 @@ public interface WalletRepository extends JpaRepository<WalletEntity, String> {
     // 查询某用户的所有钱包
     List<WalletEntity> findByUserId(String userId);
 
+    // 根据 currency_code 查询wallet_id
+    Optional<WalletEntity> findByCurrencyCode(String currencyCode);
 }

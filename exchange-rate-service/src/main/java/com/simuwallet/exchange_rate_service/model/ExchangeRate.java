@@ -1,4 +1,4 @@
-package com.simuwallet.exchange_rate_service.domain.model;
+package com.simuwallet.exchange_rate_service.model;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -6,6 +6,7 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 import java.util.Map;
 
+// 汇率模型
 @Getter
 @Setter
 public class ExchangeRate {

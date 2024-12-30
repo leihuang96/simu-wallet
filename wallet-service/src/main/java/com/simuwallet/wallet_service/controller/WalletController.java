@@ -68,10 +68,8 @@ public class WalletController {
     public ResponseEntity<String> convert(
             @PathVariable String fromWalletId,
             @RequestParam String toWalletId,
-            @RequestParam BigDecimal amount,
-            @RequestParam BigDecimal exchangeRate) {
+            @RequestParam BigDecimal amount) {
         walletApplicationService.convert(fromWalletId, toWalletId, amount);
         return ResponseEntity.ok("Currency conversion successful");
     }
-
 }

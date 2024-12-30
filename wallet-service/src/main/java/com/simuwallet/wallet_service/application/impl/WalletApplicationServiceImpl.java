@@ -3,33 +3,31 @@ package com.simuwallet.wallet_service.application.impl;
 import com.simuwallet.wallet_service.application.WalletApplicationService;
 import com.simuwallet.wallet_service.domain.model.Wallet;
 import com.simuwallet.wallet_service.domain.service.CurrencyService;
-import com.simuwallet.wallet_service.domain.model.valueobject.Currency;
 import com.simuwallet.wallet_service.domain.service.WalletDomainService;
-import com.simuwallet.wallet_service.event.ExchangeRateResponseListener;
-import com.simuwallet.wallet_service.infrastructure.mapper.WalletMapper;
+import com.simuwallet.wallet_service.event.ConversionRequestProducer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class WalletApplicationServiceImpl implements WalletApplicationService {
-    private final ExchangeRateResponseListener exchangeRateResponseListener;
+    private static final Logger logger = LoggerFactory.getLogger(WalletApplicationServiceImpl.class);
     private final WalletDomainService walletDomainService;
     private final CurrencyService currencyService;
     private final KafkaTemplate<String, String> kafkaTemplate;
+    @Autowired
+    private ConversionRequestProducer conversionRequestProducer;
 
     @Autowired
-    public WalletApplicationServiceImpl(WalletDomainService walletDomainService, CurrencyService currencyService,ExchangeRateResponseListener exchangeRateResponseListener,KafkaTemplate<String, String> kafkaTemplate) {
+    public WalletApplicationServiceImpl(WalletDomainService walletDomainService, CurrencyService currencyService,
+                                        KafkaTemplate<String, String> kafkaTemplate) {
         this.walletDomainService = walletDomainService;
         this.currencyService = currencyService;
-        this.exchangeRateResponseListener = exchangeRateResponseListener;
         this.kafkaTemplate = kafkaTemplate;
-
     }
 
     @Override
@@ -60,61 +58,34 @@ public class WalletApplicationServiceImpl implements WalletApplicationService {
         walletDomainService.withdraw(walletId, amount);
     }
 
-    // 缓存汇率响应的异步结果
-    private final ConcurrentHashMap<String, CompletableFuture<Double>> exchangeRateFutures = new ConcurrentHashMap<>();
-
     @Override
     public void convert(String fromWalletId, String toWalletId, BigDecimal amount) {
+        // 获取钱包信息
         Wallet fromWallet = walletDomainService.getWallet(fromWalletId);
         Wallet toWallet = walletDomainService.getWallet(toWalletId);
 
-        String baseCurrency = fromWallet.getCurrencyCode(); // 修改为 getCurrencyCode()
-        String targetCurrency = toWallet.getCurrencyCode(); // 修改为 getCurrencyCode()
+        // 提取货币信息
+        String baseCurrency = fromWallet.getCurrencyCode();
+        String targetCurrency = toWallet.getCurrencyCode();
 
-        // 创建异步任务
-        CompletableFuture<Double> future = new CompletableFuture<>();
-        String cacheKey = baseCurrency + ":" + targetCurrency;
-        exchangeRateFutures.put(cacheKey, future);
-        // 发送 Kafka 消息请求汇率
-        kafkaTemplate.send("exchange-rate-requests", cacheKey);
-        try {
-            // 等待汇率响应
-            Double exchangeRate = future.get(); // 阻塞等待结果
-            if (exchangeRate == null) {
-                throw new IllegalStateException("Exchange rate not available");
-            }
 
-            // 完成跨币种转换
-            walletDomainService.convert(fromWalletId, toWalletId, amount, BigDecimal.valueOf(exchangeRate));
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to fetch exchange rate", e);
-        } finally {
-            // 清除缓存
-            exchangeRateFutures.remove(cacheKey);
-        }
+        // Step 3: 构造消息字符串，仅包含 baseCurrency, targetCurrency, amount
+        String message = String.format("%s:%s:%s", baseCurrency, targetCurrency, amount);
+
+        // Step 4: 发送消息到 Kafka
+        kafkaTemplate.send("conversion-request", message);
+
+        logger.info("Conversion request sent: {}", message);
     }
 
-    @KafkaListener(topics = "exchange-rate-responses", groupId = "wallet-service-group")
-    public void handleExchangeRateResponse(String message) {
-        try {
-            // 消息格式：baseCurrency:targetCurrency:rate
-            String[] parts = message.split(":");
-            if (parts.length != 3) {
-                throw new IllegalArgumentException("Invalid message format. Expected 'baseCurrency:targetCurrency:rate'");
-            }
+    public void updateWalletBalances(String baseCurrency, String targetCurrency, BigDecimal amount,
+                                     BigDecimal convertedAmount) {
+        String fromWalletId = walletDomainService.getWalletIdByCurrency(baseCurrency);
+        String toWalletId = walletDomainService.getWalletIdByCurrency(targetCurrency);
 
-            String baseCurrency = parts[0];
-            String targetCurrency = parts[1];
-            Double rate = Double.valueOf(parts[2]);
-            String cacheKey = baseCurrency + ":" + targetCurrency;
+        withdraw(fromWalletId, amount);
+        deposit(toWalletId, convertedAmount);
 
-            // 完成异步任务
-            CompletableFuture<Double> future = exchangeRateFutures.get(cacheKey);
-            if (future != null) {
-                future.complete(rate);
-            }
-        } catch (Exception e) {
-            System.err.println("Error handling exchange rate response: " + e.getMessage());
-        }
+        System.out.println("Updated wallets: fromWalletId=" + fromWalletId + ", toWalletId=" + toWalletId);
     }
 }

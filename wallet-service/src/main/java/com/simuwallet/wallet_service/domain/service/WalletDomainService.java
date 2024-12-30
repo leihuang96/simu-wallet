@@ -37,6 +37,15 @@ public class WalletDomainService {
     }
 
     /**
+     * 根据货币代码获取钱包 ID
+     */
+    public String getWalletIdByCurrency(String currencyCode) {
+        return walletRepository.findByCurrencyCode(currencyCode)
+                .map(WalletEntity::getWalletId)
+                .orElseThrow(() -> new IllegalArgumentException("Wallet not found for currency: " + currencyCode));
+    }
+
+    /**
      * 查询用户的所有钱包
      */
     public List<Wallet> getAllWalletsByUserId(String userId) {

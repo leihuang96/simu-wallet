@@ -19,4 +19,6 @@ public interface WalletApplicationService {
     void convert(String fromWalletId, String toWalletId, BigDecimal amount);
 
     void deleteWallet(String walletId);
+
+    void updateWalletBalances(String baseCurrency, String targetCurrency, BigDecimal amount, BigDecimal convertedAmount);
 }
