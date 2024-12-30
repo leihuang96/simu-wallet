@@ -1,5 +1,6 @@
 package com.simuwallet.wallet_service.application;
 
+import com.simuwallet.wallet_service.application.model.ConversionResponse;
 import com.simuwallet.wallet_service.domain.model.Wallet;
 import com.simuwallet.wallet_service.domain.model.valueobject.Currency;
 
@@ -16,7 +17,7 @@ public interface WalletApplicationService {
 
     void withdraw(String walletId, BigDecimal amount);
 
-    void convert(String fromWalletId, String toWalletId, BigDecimal amount);
+    ConversionResponse convert(String fromWalletId, String toWalletId, BigDecimal amount);
 
     void deleteWallet(String walletId);
 

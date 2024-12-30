@@ -1,8 +1,9 @@
 package com.simuwallet.wallet_service.controller;
 
 import com.simuwallet.wallet_service.application.WalletApplicationService;
+import com.simuwallet.wallet_service.application.model.ConversionResponse;
 import com.simuwallet.wallet_service.domain.model.Wallet;
-import com.simuwallet.wallet_service.domain.model.valueobject.Currency;
+import com.simuwallet.wallet_service.event.ConversionRequestProducer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,10 @@ import java.math.BigDecimal;
 @RequestMapping("/wallets")
 public class WalletController {
     private final WalletApplicationService walletApplicationService;
+
+    @Autowired
+    private ConversionRequestProducer producer;
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WalletController.class);
 
     @Autowired
     public WalletController(WalletApplicationService walletApplicationService) {
@@ -69,7 +74,16 @@ public class WalletController {
             @PathVariable String fromWalletId,
             @RequestParam String toWalletId,
             @RequestParam BigDecimal amount) {
-        walletApplicationService.convert(fromWalletId, toWalletId, amount);
+        ConversionResponse response = walletApplicationService.convert(fromWalletId, toWalletId, amount);
+
+        try {
+            producer.sendConversionRequest(response.getBaseCurrency(), response.getTargetCurrency(), amount);
+            logger.info("Conversion request sent successfully");
+        }
+        catch (Exception e) {
+            logger.error("Error sending conversion request: {}", e.getMessage());
+            throw new RuntimeException(e);
+        }
         return ResponseEntity.ok("Currency conversion successful");
     }
 }

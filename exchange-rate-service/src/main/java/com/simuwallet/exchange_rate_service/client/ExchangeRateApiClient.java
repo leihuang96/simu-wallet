@@ -1,5 +1,6 @@
 package com.simuwallet.exchange_rate_service.client;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.simuwallet.exchange_rate_service.config.ApiConfig;
 import com.simuwallet.exchange_rate_service.cache.RedisCacheManager;
 import com.simuwallet.exchange_rate_service.service.ExchangeRateService;
@@ -8,6 +9,7 @@ import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -22,8 +24,6 @@ import java.util.Map;
 @Component
 public class ExchangeRateApiClient {
 
-    private final RestTemplate restTemplate = new RestTemplate();
-
     @Autowired
     private RedisCacheManager redisCacheManager;
 
@@ -32,6 +32,12 @@ public class ExchangeRateApiClient {
 
     private static final Logger logger = LoggerFactory.getLogger(ExchangeRateService.class);
 
+    private final RestTemplate restTemplate;
+
+    @Autowired
+    public ExchangeRateApiClient(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
 
     /**
      * 从第三方 API 获取汇率并缓存为键值对
@@ -50,14 +56,15 @@ public class ExchangeRateApiClient {
             HttpEntity<String> entity = new HttpEntity<>(headers);
             logger.info("Requesting exchange rates. URL: {}", url);
             logger.info("Using API key: {}", apiConfig.getKey());
-            logger.debug("Request Headers: {}", headers);
+            logger.info("Constructed Headers: {}", headers);
             logger.info("Fetching exchange rates. URL: {}, Base Currency: {}", url, baseCurrency);
 
             // 调用第三方 API
             ResponseEntity<ExchangeRateResponse> responseEntity =
-                    restTemplate.getForEntity(url, ExchangeRateResponse.class, entity);
+                    restTemplate.exchange(url,HttpMethod.GET,entity,
+                            ExchangeRateResponse.class);
 
-            logger.debug("Raw API Response: {}", responseEntity);
+            logger.info("Raw API Response: {}", responseEntity);
 
             // 检查响应状态
             if (!responseEntity.getStatusCode().is2xxSuccessful()) {
@@ -96,23 +103,13 @@ public class ExchangeRateApiClient {
         @Setter
         @Getter
         private String result; // 响应结果状态
-        private String base_code; // 基准货币
-        private Map<String, BigDecimal> conversion_rates; //汇率表（目标货币 -> 汇率值）
-
-        public String getBaseCode() {
-            return base_code;
-        }
-
-        public void setBaseCode(String base_code) {
-            this.base_code = base_code;
-        }
-
-        public Map<String, BigDecimal> getConversionRates() {
-            return conversion_rates;
-        }
-
-        public void setConversionRates(Map<String, BigDecimal> conversion_rates) {
-            this.conversion_rates = conversion_rates;
-        }
+        @Setter
+        @Getter
+        @JsonProperty("base_code")
+        private String baseCode; // 基准货币
+        @Setter
+        @Getter
+        @JsonProperty("conversion_rates")
+        private Map<String, BigDecimal> conversionRates; //汇率表（目标货币 -> 汇率值）
     }
 }

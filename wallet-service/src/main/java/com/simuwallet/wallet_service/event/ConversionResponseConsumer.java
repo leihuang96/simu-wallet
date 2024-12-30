@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 
+@Service
 public class ConversionResponseConsumer {
     @Autowired
     private WalletApplicationService walletApplicationService;
@@ -17,11 +18,12 @@ public class ConversionResponseConsumer {
      */
     @KafkaListener(topics = "conversion-response", groupId = "wallet-service-group")
     public void handleConversionResponse(String message) {
+        logger.info("Received message from 'conversion-response': {}", message);
         try {
             // 消息格式：fromWalletId:toWalletId:amount:convertedAmount
             String[] parts = message.split(":");
             if (parts.length != 4) {
-                throw new IllegalArgumentException("Invalid message format. Expected 'baseCurrency:targetCurrency:amount:convertedAmount'");
+                logger.info("Received message from 'conversion-response': {}", message);
             }
 
             String baseCurrency = parts[0];
@@ -31,7 +33,7 @@ public class ConversionResponseConsumer {
 
             // 更新钱包余额
             walletApplicationService.updateWalletBalances(baseCurrency, targetCurrency, amount, convertedAmount);
-            logger.info("Updated wallets: fromWalletId=" + baseCurrency + ", toWalletId=" + targetCurrency);
+            logger.info("Updated wallets: fromWalletId={}, toWalletId={}", baseCurrency, targetCurrency);
         } catch (Exception e) {
             logger.error("Error processing conversion response: {}", e.getMessage());
         }

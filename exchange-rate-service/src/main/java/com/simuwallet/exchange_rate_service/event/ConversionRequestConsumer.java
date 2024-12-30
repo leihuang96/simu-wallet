@@ -17,6 +17,7 @@ public class ConversionRequestConsumer {
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
 
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ConversionRequestConsumer.class);
     private static final String CONVERSION_RESPONSE_TOPIC = "conversion-response";
 
     /**
@@ -24,7 +25,6 @@ public class ConversionRequestConsumer {
      */
     @KafkaListener(topics = "conversion-request", groupId = "exchange-rate-service-group")
     public void handleConversionRequest(String message) {
-        try {
             // 消息格式：baseCurrency:targetCurrency:amount
             String[] parts = message.split(":");
             if (parts.length != 3) {
@@ -37,15 +37,20 @@ public class ConversionRequestConsumer {
 
             // 调用汇率转换逻辑
             BigDecimal convertedAmount = exchangeRateService.convert(baseCurrency, targetCurrency, amount);
+            logger.info("Converted amount: {}", convertedAmount);
 
             // 构造响应消息
             String responseMessage = String.format("%s:%s:%s:%s", baseCurrency, targetCurrency, amount, convertedAmount);
+            logger.info("Response message: {}", responseMessage);
 
             // 发送转换结果到 `conversion-response` 主题
-            kafkaTemplate.send(CONVERSION_RESPONSE_TOPIC, responseMessage);
-            System.out.println("Sent conversion response to Kafka: " + responseMessage);
-        } catch (Exception e) {
-            System.err.println("Error processing conversion request: " + e.getMessage());
-        }
+            try {
+                kafkaTemplate.send(CONVERSION_RESPONSE_TOPIC, responseMessage);
+                logger.info("Sent conversion response to Kafka: {}", responseMessage);
+            }
+            catch (Exception e) {
+                logger.error("Error sending conversion response: {}", e.getMessage());
+                throw new RuntimeException(e);
+            }
     }
 }
