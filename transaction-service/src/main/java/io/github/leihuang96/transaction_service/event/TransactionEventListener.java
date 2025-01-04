@@ -1,6 +1,6 @@
 package io.github.leihuang96.transaction_service.event;
 
-import io.github.leihuang96.common.TransactionEvent;
+import io.github.leihuang96.common_module.TransactionEvent;
 import io.github.leihuang96.transaction_service.application.TransactionApplicationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +16,8 @@ public class TransactionEventListener {
         this.transactionApplicationService = transactionApplicationService;
     }
 
-    @KafkaListener(topics = "transaction-topic", groupId = "transaction-service-group")
+    @KafkaListener(topics = "transaction-topic", groupId = "transaction-service-group", containerFactory = "transactionEventContainerFactory"
+    )
     public void handleTransactionEvent(TransactionEvent event) {
         logger.info("Received transaction event: {}", event);
         try {

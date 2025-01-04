@@ -1,6 +1,6 @@
 package io.github.leihuang96.wallet_service.application.impl;
 
-import io.github.leihuang96.common.TransactionEvent;
+import io.github.leihuang96.common_module.TransactionEvent;
 import io.github.leihuang96.wallet_service.application.WalletApplicationService;
 import io.github.leihuang96.wallet_service.application.model.ConversionResponse;
 import io.github.leihuang96.wallet_service.domain.model.Wallet;

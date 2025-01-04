@@ -5,6 +5,7 @@
         <groupId>io.github.leihuang96</groupId>
         <artifactId>simu-wallet</artifactId>
         <version>1.0.0</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>common-module</artifactId>
     <version>1.0.0</version>
@@ -16,5 +17,13 @@
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+        </dependency>
     </dependencies>
+
+    <build>
+        <finalName>common-module</finalName>
+    </build>
 </project>

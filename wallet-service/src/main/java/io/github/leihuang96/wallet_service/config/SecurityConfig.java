@@ -20,7 +20,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable) // 禁用 CSRF
                 .authorizeHttpRequests(auth -> auth
                                 // 允许匿名访问的接口
-                                .requestMatchers("/wallets/**").permitAll()
+                                .requestMatchers("/{userId}/wallets/**").permitAll()
                         // 需要认证的接口
                         //.requestMatchers("/users/**").authenticated()
                 )

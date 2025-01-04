@@ -11,6 +11,7 @@ services:
     volumes:
       - ./user-service/src:/app/src
       - ./user-service/target:/app/target
+    command: mvn spring-boot:run
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/simuwallet_prod
       SPRING_DATASOURCE_USERNAME: postgres
@@ -35,6 +36,8 @@ services:
     volumes:
       - ./wallet-service/src:/app/src
       - ./wallet-service/target:/app/target
+    command: mvn spring-boot:run
+
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/simuwallet_prod
       SPRING_DATASOURCE_USERNAME: postgres
@@ -59,6 +62,8 @@ services:
     volumes:
       - ./exchange-rate-service/src:/app/src
       - ./exchange-rate-service/target:/app/target
+    command: mvn spring-boot:run
+
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/simuwallet_prod
       SPRING_DATASOURCE_USERNAME: postgres
@@ -87,6 +92,8 @@ services:
     volumes:
       - ./transaction-service/src:/app/src
       - ./transaction-service/target:/app/target
+    command: mvn spring-boot:run
+
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/simuwallet_prod
       SPRING_DATASOURCE_USERNAME: postgres

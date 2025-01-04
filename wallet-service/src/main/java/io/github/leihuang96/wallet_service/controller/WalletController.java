@@ -1,5 +1,6 @@
 package io.github.leihuang96.wallet_service.controller;
 
+import io.github.leihuang96.common_module.TransactionEvent;
 import io.github.leihuang96.wallet_service.application.WalletApplicationService;
 import io.github.leihuang96.wallet_service.application.model.ConversionResponse;
 import io.github.leihuang96.wallet_service.domain.model.Wallet;
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/{userId}/wallets")
@@ -81,9 +83,18 @@ public class WalletController {
     ) {
         ConversionResponse response = walletApplicationService.convert(fromWalletId, toWalletId, amount);
 
+        TransactionEvent transactionEvent = new TransactionEvent();
+        transactionEvent.setUserId(userId);
+        transactionEvent.setSourceAmount(amount);
+        transactionEvent.setSourceCurrency(response.getBaseCurrency());
+        transactionEvent.setTargetCurrency(response.getTargetCurrency());
+        transactionEvent.setInitiatedAt(LocalDateTime.now());
+        transactionEvent.setType("CONVERT");
+        transactionEvent.setStatus("PENDING");
+
         try {
             // 发送 Kafka 消息到 conversion topic
-            producer.sendConversionRequest(userId,response.getBaseCurrency(), response.getTargetCurrency(), amount);
+            producer.sendConversionRequest(transactionEvent);
             logger.info("Conversion request sent successfully");
         }
         catch (Exception e) {

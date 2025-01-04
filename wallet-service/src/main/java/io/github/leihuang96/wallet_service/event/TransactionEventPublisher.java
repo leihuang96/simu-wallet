@@ -2,7 +2,7 @@ package io.github.leihuang96.wallet_service.event;
 
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-import io.github.leihuang96.common.TransactionEvent;
+import io.github.leihuang96.common_module.TransactionEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

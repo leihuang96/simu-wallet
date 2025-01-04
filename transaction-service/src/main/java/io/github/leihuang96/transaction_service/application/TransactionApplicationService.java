@@ -2,7 +2,7 @@ package io.github.leihuang96.transaction_service.application;
 
 import io.github.leihuang96.transaction_service.application.export.ExcelExporter;
 import io.github.leihuang96.transaction_service.application.export.PdfExporter;
-import io.github.leihuang96.common.TransactionEvent;
+import io.github.leihuang96.common_module.TransactionEvent;
 import io.github.leihuang96.transaction_service.infrastructure.repository.TransactionRepository;
 import io.github.leihuang96.transaction_service.infrastructure.repository.entity.TransactionEntity;
 import jakarta.transaction.Transactional;

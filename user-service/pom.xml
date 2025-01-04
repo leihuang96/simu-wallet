@@ -6,6 +6,7 @@
 		<groupId>io.github.leihuang96</groupId>
 		<artifactId>simu-wallet</artifactId>
 		<version>1.0.0</version>
+		<relativePath>../pom.xml</relativePath> <!-- 根据模块与父 POM 的相对路径设置 -->
 	</parent>
 
 	<artifactId>user-service</artifactId>
@@ -83,6 +84,7 @@
 		</dependency>
 	</dependencies>
 	<build>
+		<finalName>user-service</finalName>
 		<plugins>
 			<!-- Spring Boot Maven Plugin -->
 			<plugin>

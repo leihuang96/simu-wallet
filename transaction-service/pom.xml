@@ -7,6 +7,7 @@
 		<groupId>io.github.leihuang96</groupId>
 		<artifactId>simu-wallet</artifactId>
 		<version>1.0.0</version>
+		<relativePath>../pom.xml</relativePath> <!-- 根据模块与父 POM 的相对路径设置 -->
 	</parent>
 	<packaging>jar</packaging>
 	<artifactId>transaction-service</artifactId>
@@ -91,6 +92,7 @@
     </dependencies>
 
 	<build>
+		<finalName>transaction-service</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>

@@ -18,19 +18,18 @@ public class TransactionEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "transaction_id", unique = true, nullable = false)
+    @Column(name = "transaction_id", unique = true)
     private String transactionId; // 自增数值型字段
 
-    @Column(name = "user_id", nullable = false)
+    @Column(name = "user_id")
     private String userId;
 
-    @Column(nullable = false)
     private String type;
 
-    @Column(name = "source_amount", nullable = false, precision = 20, scale = 2)
+    @Column(name = "source_amount", precision = 20, scale = 2)
     private BigDecimal sourceAmount;
 
-    @Column(name = "source_currency", nullable = false)
+    @Column(name = "source_currency")
     private String sourceCurrency;
 
     @Column(name = "target_amount", precision = 20, scale = 2)
@@ -45,16 +44,16 @@ public class TransactionEntity {
     @Column(precision = 20, scale = 8)
     private BigDecimal quantity;
 
-    @Column(nullable = false, precision = 20, scale = 2)
+    @Column(precision = 20, scale = 2)
     private BigDecimal fee;
 
-    @Column(name = "fee_currency", nullable = false)
+    @Column(name = "fee_currency")
     private String feeCurrency;
 
     @Column(name = "exchange_rate", precision = 20, scale = 8)
     private BigDecimal exchangeRate;
 
-    @Column(name = "initiated_at", nullable = false)
+    @Column(name = "initiated_at")
     private LocalDateTime initiatedAt;
 
     @Column(name = "completed_at")
@@ -68,7 +67,9 @@ public class TransactionEntity {
 
     // 格式化 transaction_id 为固定长度
     public String getFormattedTransactionId() {
-        return String.format("%06d", transactionId);
+        // 将字符串解析为整数，然后格式化为固定长度
+        int id = Integer.parseInt(transactionId);
+        return String.format("%06d", id);
     }
 
 }
