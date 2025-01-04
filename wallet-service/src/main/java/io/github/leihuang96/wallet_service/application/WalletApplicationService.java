@@ -21,4 +21,6 @@ public interface WalletApplicationService {
     void deleteWallet(String walletId);
 
     void updateWalletBalances(String baseCurrency, String targetCurrency, BigDecimal amount, BigDecimal convertedAmount);
+
+    void createAndSendTransactionEvent(String baseCurrency, String targetCurrency,String userId,BigDecimal amount,BigDecimal convertedAmount);
 }

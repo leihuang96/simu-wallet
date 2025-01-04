@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 
 @RestController
-@RequestMapping("/wallets")
+@RequestMapping("/{userId}/wallets")
 public class WalletController {
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WalletController.class);
     private final WalletApplicationService walletApplicationService;
@@ -74,6 +74,7 @@ public class WalletController {
     // 跨币种转换
     @PostMapping("/{fromWalletId}/convert")
     public ResponseEntity<String> convert(
+            @PathVariable String userId,
             @PathVariable String fromWalletId,
             @RequestParam String toWalletId,
             @RequestParam BigDecimal amount
@@ -81,13 +82,15 @@ public class WalletController {
         ConversionResponse response = walletApplicationService.convert(fromWalletId, toWalletId, amount);
 
         try {
-            producer.sendConversionRequest(response.getBaseCurrency(), response.getTargetCurrency(), amount);
+            // 发送 Kafka 消息到 conversion topic
+            producer.sendConversionRequest(userId,response.getBaseCurrency(), response.getTargetCurrency(), amount);
             logger.info("Conversion request sent successfully");
         }
         catch (Exception e) {
             logger.error("Error sending conversion request: {}", e.getMessage());
             throw new RuntimeException(e);
         }
-        return ResponseEntity.ok("Currency conversion successful");
+        return ResponseEntity.ok("Currency conversion sent successfully");
+
     }
 }

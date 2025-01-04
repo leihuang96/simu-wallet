@@ -69,6 +69,33 @@ services:
       EXCHANGE_RATE_API_URL: https://api.exchangerate-api.com/v6/latest
       EXCHANGE_RATE_API_KEY: cda830e0f72a35c31f16af5e
     depends_on:
+      - db
+      - redis
+      - kafka
+
+  transaction-service:
+    container_name: transaction-service
+    build:
+      context: .
+      dockerfile: transaction-service/Dockerfile
+      args:
+        MAVEN_OPTS: "-Dmaven.repo.local=/root/.m2/repository"
+    networks:
+      - default
+    ports:
+      - "8084:8080"
+    volumes:
+      - ./transaction-service/src:/app/src
+      - ./transaction-service/target:/app/target
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/simuwallet_prod
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: asdf96
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_PROFILES_ACTIVE: debug
+    depends_on:
       db:
         condition: service_healthy
       redis:

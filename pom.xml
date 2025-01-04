@@ -11,10 +11,11 @@
     </properties>
 
     <modules>
+        <module>common-module</module>
         <module>user-service</module>
+        <module>transaction-service</module>
         <module>wallet-service</module>
         <module>exchange-rate-service</module>
-        <module>transaction-service</module>
     </modules>
 
     <dependencyManagement>
@@ -216,6 +217,11 @@
                 <groupId>org.apache.poi</groupId>
                 <artifactId>poi-ooxml-schemas</artifactId>
                 <version>4.1.2</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.leihuang96</groupId>
+                <artifactId>common-module</artifactId>
+                <version>1.0.0</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

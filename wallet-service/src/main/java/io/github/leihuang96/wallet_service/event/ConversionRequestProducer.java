@@ -21,9 +21,9 @@ public class ConversionRequestProducer {
     /**
      * 发送金额转换请求到 Kafka
      */
-    public void sendConversionRequest(String baseCurrency, String targetCurrency, BigDecimal amount) {
-        validateInputs(baseCurrency, targetCurrency, amount);
-        String message = formatMessage(baseCurrency, targetCurrency, amount);
+    public void sendConversionRequest(String userId,String baseCurrency, String targetCurrency, BigDecimal amount) {
+        validateInputs(userId, baseCurrency, targetCurrency, amount);
+        String message = formatMessage(userId, baseCurrency, targetCurrency, amount);
 
         try {
             kafkaTemplate.send(CONVERSION_REQUEST_TOPIC, message);
@@ -39,11 +39,11 @@ public class ConversionRequestProducer {
     /**
      * 格式化 Kafka 消息
      */
-    private String formatMessage(String baseCurrency, String targetCurrency, BigDecimal amount) {
-        return String.format("%s:%s:%s", baseCurrency, targetCurrency, amount);
+    private String formatMessage(String userId,String baseCurrency, String targetCurrency, BigDecimal amount) {
+        return String.format("%s:%s:%s:%s", userId, baseCurrency, targetCurrency, amount);
     }
 
-    private void validateInputs(String baseCurrency, String targetCurrency, BigDecimal amount) {
+    private void validateInputs(String userId, String baseCurrency, String targetCurrency, BigDecimal amount) {
         if (baseCurrency == null || baseCurrency.isBlank()) {
             throw new IllegalArgumentException("Base currency cannot be null or empty.");
         }

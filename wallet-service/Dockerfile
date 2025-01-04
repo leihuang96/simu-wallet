@@ -3,6 +3,8 @@ FROM maven:3.9.9-eclipse-temurin-17 AS builder
 WORKDIR /app
 
 COPY ./pom.xml /app/
+
+# 复制本地 Maven 仓库到容器
 COPY ./wallet-service /app/wallet-service/
 
 # 构建可执行 JAR 文件

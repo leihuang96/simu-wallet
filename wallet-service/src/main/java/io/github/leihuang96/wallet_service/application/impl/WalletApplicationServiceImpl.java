@@ -1,5 +1,6 @@
 package io.github.leihuang96.wallet_service.application.impl;
 
+import io.github.leihuang96.common.TransactionEvent;
 import io.github.leihuang96.wallet_service.application.WalletApplicationService;
 import io.github.leihuang96.wallet_service.application.model.ConversionResponse;
 import io.github.leihuang96.wallet_service.domain.model.Wallet;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Service
 public class WalletApplicationServiceImpl implements WalletApplicationService {
@@ -85,5 +87,20 @@ public class WalletApplicationServiceImpl implements WalletApplicationService {
         System.out.println("Updated wallets: fromWalletId=" + fromWalletId + ", toWalletId=" + toWalletId);
     }
 
+    @Override
+    public void createAndSendTransactionEvent(String baseCurrency, String targetCurrency, String userId, BigDecimal amount, BigDecimal convertedAmount) {
+        // 构建 TransactionEvent
+        TransactionEvent transactionEvent = new TransactionEvent();
+        transactionEvent.setUserId(userId);
+        transactionEvent.setSourceAmount(amount);
+        transactionEvent.setTargetAmount(convertedAmount);
+        transactionEvent.setSourceCurrency(baseCurrency);
+        transactionEvent.setTargetCurrency(targetCurrency);
+        transactionEvent.setType("CONVERT");
+        transactionEvent.setStatus("COMPLETED");
+        transactionEvent.setInitiatedAt(LocalDateTime.now());
 
+        // 发送 TransactionEvent 消息到 Kafka
+        transactionEventPublisher.sendTransactionEvent(transactionEvent);
+    }
 }

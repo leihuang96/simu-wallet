@@ -26,4 +26,5 @@ public interface TransactionRepository extends JpaRepository<TransactionEntity, 
             @Param("end") LocalDateTime end,
             Pageable pageable
     );
+
 }

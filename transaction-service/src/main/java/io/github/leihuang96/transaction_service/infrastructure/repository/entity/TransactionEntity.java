@@ -19,10 +19,10 @@ public class TransactionEntity {
     private Long id;
 
     @Column(name = "transaction_id", unique = true, nullable = false)
-    private Long transactionId; // 自增数值型字段
+    private String transactionId; // 自增数值型字段
 
     @Column(name = "user_id", nullable = false)
-    private Long userId;
+    private String userId;
 
     @Column(nullable = false)
     private String type;

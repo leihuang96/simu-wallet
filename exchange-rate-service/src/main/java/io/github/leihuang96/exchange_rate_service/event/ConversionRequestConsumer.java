@@ -25,22 +25,24 @@ public class ConversionRequestConsumer {
      */
     @KafkaListener(topics = "conversion-request", groupId = "exchange-rate-service-group")
     public void handleConversionRequest(String message) {
-            // 消息格式：baseCurrency:targetCurrency:amount
+
+            // 消息格式：userId:baseCurrency:targetCurrency:amount
             String[] parts = message.split(":");
-            if (parts.length != 3) {
+            if (parts.length != 4) {
                 throw new IllegalArgumentException("Invalid message format. Expected 'baseCurrency:targetCurrency:amount'");
             }
 
-            String baseCurrency = parts[0];
-            String targetCurrency = parts[1];
-            BigDecimal amount = new BigDecimal(parts[2]);
+            String userId = parts[0];
+            String baseCurrency = parts[1];
+            String targetCurrency = parts[2];
+            BigDecimal amount = new BigDecimal(parts[3]);
 
             // 调用汇率转换逻辑
             BigDecimal convertedAmount = exchangeRateService.convert(baseCurrency, targetCurrency, amount);
             logger.info("Converted amount: {}", convertedAmount);
 
             // 构造响应消息
-            String responseMessage = String.format("%s:%s:%s:%s", baseCurrency, targetCurrency, amount, convertedAmount);
+            String responseMessage = String.format("%s:%s:%s:%s:%s",userId, baseCurrency, targetCurrency, amount, convertedAmount);
             logger.info("Response message: {}", responseMessage);
 
             // 发送转换结果到 `conversion-response` 主题
