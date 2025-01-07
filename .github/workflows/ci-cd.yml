@@ -31,23 +31,22 @@ jobs:
       # Build Docker image for transaction-service
       - name: Build Docker image for transaction-service
         run: |
-          docker build -t transaction-service:latest -f transaction-service/Dockerfile .
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/transaction-service:latest -f transaction-service/Dockerfile .
 
       # Build Docker image for user-service
       - name: Build Docker image for user-service
         run: |
-          docker build -t user-service:latest -f user-service/Dockerfile .
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/user-service:latest -f user-service/Dockerfile .
 
       # Build Docker image for exchange-rate-service
       - name: Build Docker image for exchange-rate-service
         run: |
-          docker build -t exchange-rate-service:latest -f exchange-rate-service/Dockerfile .
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/exchange-rate-service:latest -f exchange-rate-service/Dockerfile .
 
       # Build Docker image for wallet-service
       - name: Build Docker image for wallet-service
         run: |
-          docker build -t wallet-service:latest -f wallet-service/Dockerfile .
-          
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/wallet-service:latest -f wallet-service/Dockerfile .
 
       # Push Docker images to Docker Hub (optional)
       - name: Log in to Docker Hub
