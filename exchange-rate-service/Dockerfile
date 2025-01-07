@@ -20,4 +20,6 @@ WORKDIR /app
 COPY --from=builder /app/exchange-rate-service/target/exchange-rate-service.jar app.jar
 
 EXPOSE 8083
+ENV SPRING_ZIPKIN_BASE_URL=http://zipkin:9411
+ENV SPRING_APPLICATION_NAME=exchange-rate-service
 ENTRYPOINT ["java", "-jar", "app.jar"]

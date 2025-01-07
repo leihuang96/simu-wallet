@@ -1,0 +1,11 @@
+# logstash/config/logstash.yml
+http.host: "0.0.0.0"
+xpack.monitoring.elasticsearch.hosts: [ "http://elasticsearch:9200" ]
+path.config: /usr/share/logstash/pipeline
+
+# 配置 JVM 堆大小
+path.data: /usr/share/logstash/data
+pipeline.workers: 2
+pipeline.batch.size: 125
+pipeline.batch.delay: 50
+queue.type: memory

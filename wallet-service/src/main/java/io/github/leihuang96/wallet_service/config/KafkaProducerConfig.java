@@ -2,6 +2,7 @@ package io.github.leihuang96.wallet_service.config;
 
 import io.github.leihuang96.common_module.TransactionEvent;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,11 +23,14 @@ public class KafkaProducerConfig {
     public Map<String, Object> producerConfigs() {
         Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, org.apache.kafka.common.serialization.StringSerializer.class);
-        //TransactionEvent 会被序列化为 JSON 格式。
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
-        return props;
-    }
+
+        // 添加追踪拦截器
+        props.put(ProducerConfig.INTERCEPTOR_CLASSES_CONFIG,
+                TracingProducerInterceptor.class.getName());
+
+        return props;}
 
     // Kafka 模板
     @Bean

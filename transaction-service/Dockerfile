@@ -19,4 +19,6 @@ WORKDIR /app
 COPY --from=builder /app/transaction-service/target/transaction-service.jar app.jar
 
 EXPOSE 8084
+ENV SPRING_ZIPKIN_BASE_URL=http://zipkin:9411
+ENV SPRING_APPLICATION_NAME=transaction-service
 ENTRYPOINT ["java", "-jar", "app.jar"]

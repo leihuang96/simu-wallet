@@ -11,5 +11,9 @@ public class ConversionResponseEvent {
     private BigDecimal sourceAmount;
     private BigDecimal convertedAmount;
 
+    // 添加追踪字段
+    private String traceId;
+    private String spanId;
+
     public ConversionResponseEvent() {}
 }

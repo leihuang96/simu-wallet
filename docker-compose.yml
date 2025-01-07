@@ -11,6 +11,7 @@ services:
     volumes:
       - ./user-service/src:/app/src
       - ./user-service/target:/app/target
+      - ./user-service/logs:/app/logs
     command: mvn spring-boot:run
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/simuwallet_prod
@@ -19,6 +20,8 @@ services:
       SPRING_REDIS_HOST: redis
       SPRING_REDIS_PORT: 6379
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_ZIPKIN_BASE_URL: http://zipkin:9411
+      SPRING_APPLICATION_NAME: user-service
     depends_on:
       - db
       - redis
@@ -36,6 +39,7 @@ services:
     volumes:
       - ./wallet-service/src:/app/src
       - ./wallet-service/target:/app/target
+      - ./wallet-service/logs:/app/logs
     command: mvn spring-boot:run
 
     environment:
@@ -45,6 +49,8 @@ services:
       SPRING_REDIS_HOST: redis
       SPRING_REDIS_PORT: 6379
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_ZIPKIN_BASE_URL: http://zipkin:9411
+      SPRING_APPLICATION_NAME: wallet-service
     depends_on:
       - db
       - redis
@@ -62,6 +68,7 @@ services:
     volumes:
       - ./exchange-rate-service/src:/app/src
       - ./exchange-rate-service/target:/app/target
+      - ./exchange-rate-service/logs:/app/logs
     command: mvn spring-boot:run
 
     environment:
@@ -73,6 +80,8 @@ services:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       EXCHANGE_RATE_API_URL: https://api.exchangerate-api.com/v6/latest
       EXCHANGE_RATE_API_KEY: cda830e0f72a35c31f16af5e
+      SPRING_ZIPKIN_BASE_URL: http://zipkin:9411
+      SPRING_APPLICATION_NAME: exchange-rate-service
     depends_on:
       - db
       - redis
@@ -92,6 +101,7 @@ services:
     volumes:
       - ./transaction-service/src:/app/src
       - ./transaction-service/target:/app/target
+      - ./transaction-service/logs:/app/logs
     command: mvn spring-boot:run
 
     environment:
@@ -102,6 +112,8 @@ services:
       SPRING_REDIS_PORT: 6379
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       SPRING_PROFILES_ACTIVE: debug
+      SPRING_ZIPKIN_BASE_URL: http://zipkin:9411
+      SPRING_APPLICATION_NAME: transaction-service
     depends_on:
       db:
         condition: service_healthy
@@ -180,6 +192,69 @@ services:
       - zookeeper-data:/var/lib/zookeeper/data
       - zookeeper-log:/var/lib/zookeeper/log
 
+  elasticsearch:
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9200" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.12.0
+    ports:
+      - "5044:5044"
+    volumes:
+      - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml
+      - ./logstash/pipeline/:/usr/share/logstash/pipeline/
+      - ./logs:/logs
+    environment:
+      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
+    depends_on:
+      - elasticsearch
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9600" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.12.0
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:5601/api/status" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  zipkin:
+    environment:
+      - STORAGE_TYPE=elasticsearch
+      - ES_HOSTS=http://elasticsearch:9200
+    image: openzipkin/zipkin
+    ports:
+      - "9411:9411"
+    depends_on:
+      - elasticsearch
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:9411/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
 networks:
   default:
     name: simu-wallet-network
@@ -189,3 +264,4 @@ volumes:
   kafka-data:
   zookeeper-data:
   zookeeper-log:
+  elasticsearch-data:

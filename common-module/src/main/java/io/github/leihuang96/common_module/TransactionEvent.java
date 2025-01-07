@@ -39,6 +39,8 @@ public class TransactionEvent {
     @JsonInclude
     private String description;
 
-    public TransactionEvent() {}
+    private String traceId; // 用于追踪全链路的 traceId
+    private String spanId;  // 用于追踪 spanId
 
+    public TransactionEvent() {}
 }

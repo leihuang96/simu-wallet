@@ -21,3 +21,6 @@ COPY --from=builder /app/wallet-service/target/wallet-service.jar app.jar
 
 EXPOSE 8082
 ENTRYPOINT ["java", "-jar", "app.jar"]
+# 设置环境变量，用于 Zipkin 配置
+ENV SPRING_ZIPKIN_BASE_URL=http://zipkin:9411
+ENV SPRING_APPLICATION_NAME=wallet-service

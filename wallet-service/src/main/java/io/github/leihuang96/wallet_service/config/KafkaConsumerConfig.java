@@ -31,6 +31,11 @@ public class KafkaConsumerConfig {
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
         props.put(JsonDeserializer.TRUSTED_PACKAGES, "io.github.leihuang96.common_module");
+
+        // 添加追踪拦截器
+        props.put(ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG,
+                TracingConsumerInterceptor.class.getName());
+
         return props;
     }
 

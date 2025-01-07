@@ -9,6 +9,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.slf4j.Logger; // 日志接口
+import org.slf4j.LoggerFactory; // 日志工厂，用于获取 Logger 实例
+import io.micrometer.tracing.Tracer; // 用于跟踪 traceId 和 spanId
+import org.springframework.web.bind.annotation.ExceptionHandler; // 用于捕获异常的方法
+
+
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -18,12 +24,26 @@ import java.time.LocalDateTime;
 public class WalletController {
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WalletController.class);
     private final WalletApplicationService walletApplicationService;
+    private final Tracer tracer;
+
     @Autowired
     private ConversionRequestProducer producer;
 
     @Autowired
-    public WalletController(WalletApplicationService walletApplicationService) {
+    public WalletController(WalletApplicationService walletApplicationService, Tracer tracer) {
         this.walletApplicationService = walletApplicationService;
+        this.tracer = tracer;
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleException(Exception e) {
+        String traceId = tracer.currentSpan() != null ? tracer.currentSpan().context().traceId() : "N/A";
+        String spanId = tracer.currentSpan() != null ? tracer.currentSpan().context().spanId() : "N/A";
+
+        logger.error("Exception in WalletController. TraceId: {}", traceId, e);
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("An error occurred in WalletController. TraceId: " + traceId);
     }
 
     // 创建钱包
@@ -81,27 +101,30 @@ public class WalletController {
             @RequestParam String toWalletId,
             @RequestParam BigDecimal amount
     ) {
-        ConversionResponse response = walletApplicationService.convert(fromWalletId, toWalletId, amount);
+        var span = tracer.nextSpan().name("wallet-convert").start();
+        try (var ignored = tracer.withSpan(span)) {
+            ConversionResponse response = walletApplicationService.convert(fromWalletId, toWalletId, amount);
 
-        TransactionEvent transactionEvent = new TransactionEvent();
-        transactionEvent.setUserId(userId);
-        transactionEvent.setSourceAmount(amount);
-        transactionEvent.setSourceCurrency(response.getBaseCurrency());
-        transactionEvent.setTargetCurrency(response.getTargetCurrency());
-        transactionEvent.setInitiatedAt(LocalDateTime.now());
-        transactionEvent.setType("CONVERT");
-        transactionEvent.setStatus("PENDING");
+            TransactionEvent transactionEvent = new TransactionEvent();
+            transactionEvent.setUserId(userId);
+            transactionEvent.setSourceAmount(amount);
+            transactionEvent.setSourceCurrency(response.getBaseCurrency());
+            transactionEvent.setTargetCurrency(response.getTargetCurrency());
+            transactionEvent.setInitiatedAt(LocalDateTime.now());
+            transactionEvent.setType("CONVERT");
+            transactionEvent.setStatus("PENDING");
+            transactionEvent.setTraceId(span.context().traceId());
+            transactionEvent.setSpanId(span.context().spanId());
 
-        try {
-            // 发送 Kafka 消息到 conversion topic
             producer.sendConversionRequest(transactionEvent);
             logger.info("Conversion request sent successfully");
-        }
-        catch (Exception e) {
-            logger.error("Error sending conversion request: {}", e.getMessage());
-            throw new RuntimeException(e);
-        }
-        return ResponseEntity.ok("Currency conversion sent successfully");
 
+            return ResponseEntity.ok("Currency conversion sent successfully");
+        } catch (Exception e) {
+            span.tag("error", e.getMessage());
+            throw e;
+        } finally {
+            span.end();
+        }
     }
 }
